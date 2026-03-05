@@ -18,12 +18,12 @@ from azure.ai.agents.telemetry import trace_function
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import time
-# from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
 
 # # Enable Azure Monitor tracing
 application_insights_connection_string = os.environ["APPLICATIONINSIGHTS_CONNECTION_STRING"]
-# configure_azure_monitor(connection_string=application_insights_connection_string)
-# OpenAIInstrumentor().instrument()
+configure_azure_monitor(connection_string=application_insights_connection_string)
+OpenAIInstrumentor().instrument()
 
 # scenario = os.path.basename(__file__)
 # tracer = trace.get_tracer(__name__)
@@ -50,18 +50,17 @@ async def mcp_create_image(prompt: str) -> str:
     Returns:
         URL or path to the generated image
     """
-    
-    mcp_client = await get_mcp_client(_mcp_server_url)
-    """Wrapper for create_image using MCP client"""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    async def _create_image():
+        mcp_client = await get_mcp_client(_mcp_server_url)
+        results = await mcp_client.call_tool("generate_product_image", {"prompt": prompt})
+        return results
+    # Run async function in event loop
     try:
-        result = loop.run_until_complete(
-            mcp_client.call_tool("generate_product_image", {"prompt": prompt})
-        )
-        return result
-    finally:
-        loop.close()
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop.run_until_complete(_create_image())
 
 def mcp_product_recommendations(question: str) -> str:
     """
