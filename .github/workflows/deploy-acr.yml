@@ -35,5 +35,4 @@ jobs:
           file: src/Dockerfile
           push: true
           tags: |
-            ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/techworkshop-ai-app:latest
-            ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/techworkshop-ai-app:${{ github.sha }}
+            ${{ secrets.AZURE_ACR_LOGIN_SERVER }}/chat-app:latest
