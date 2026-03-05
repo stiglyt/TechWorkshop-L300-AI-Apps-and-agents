@@ -24,7 +24,11 @@ jobs:
           password: ${{ secrets.AZURE_ACR_PASSWORD }}
 
       - name: Create .env file from secret
-        run: echo "${{ secrets.ENV }}" > src/.env
+        run: 'echo "$ENV_CONTENT" > src/.env'
+        shell: bash
+        env:
+          ENV_CONTENT: ${{ secrets.ENV }}
+        
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
